@@ -300,6 +300,15 @@ app.post('/api/checkout', (req, res) => {
   // In a real app you would validate inventory and process payment
   res.json({ ok: true, orderId: `ORDER-${Date.now()}` })
 })
+const path = require('path')
+
+// Serve the React frontend
+app.use(express.static(path.join(__dirname, '../frontend/build')))
+
+// Fallback for React Router or unknown routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'))
+})
 
 const server = app.listen(PORT, HOST, () => {
   const actualHost = HOST === '0.0.0.0' ? 'localhost' : HOST
