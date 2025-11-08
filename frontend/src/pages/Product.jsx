@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useCart } from '../state/CartContext.jsx'
 import ProductSection from '../sections/ProductSection.jsx'
 import ReviewsGrid from '../sections/ReviewsGrid.jsx'
+import sampleProducts from '../data/products'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -17,9 +18,16 @@ export default function Product() {
     const run = async () => {
       try {
         setStatus('loading')
-        const res = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal })
-        if (!res.ok) throw new Error('Not found')
-        setProduct(await res.json())
+        if (API_BASE_URL) {
+          const res = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal })
+          if (!res.ok) throw new Error('Not found')
+          setProduct(await res.json())
+        } else {
+          // Find the product from local sample data
+          const local = sampleProducts.find((p) => p.id === id)
+          if (!local) throw new Error('Not found')
+          setProduct(local)
+        }
         setStatus('success')
       } catch (e) {
         if (e.name === 'AbortError') return

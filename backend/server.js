@@ -302,12 +302,16 @@ app.post('/api/checkout', (req, res) => {
 })
 const path = require('path')
 
-// Serve the React frontend
-app.use(express.static(path.join(__dirname, '../frontend/build')))
+// Serve the built frontend (Vite outputs to `dist` by default)
+// Use `dist` instead of `build` to match Vite's output directory.
+const frontendDist = path.join(__dirname, '../frontend/dist')
+app.use(express.static(frontendDist))
 
-// Fallback for React Router or unknown routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'))
+// Fallback for client-side routing (React Router).
+// Use a regular expression to match any path so it works with the
+// path-to-regexp version bundled with this environment.
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'))
 })
 
 const server = app.listen(PORT, HOST, () => {

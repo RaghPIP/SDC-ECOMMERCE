@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import sampleProducts from '../data/products'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -12,9 +13,14 @@ export default function Home() {
     const run = async () => {
       try {
         setStatus('loading')
-        const res = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal })
-        if (!res.ok) throw new Error('Failed to load products')
-        setProducts(await res.json())
+        if (API_BASE_URL) {
+          const res = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal })
+          if (!res.ok) throw new Error('Failed to load products')
+          setProducts(await res.json())
+        } else {
+          // Use bundled sample data when no backend URL is provided
+          setProducts(sampleProducts)
+        }
         setStatus('success')
       } catch (e) {
         if (e.name === 'AbortError') return

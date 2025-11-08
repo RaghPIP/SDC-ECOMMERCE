@@ -13,16 +13,25 @@ export default function Cart() {
   const checkout = async () => {
     try {
       setStatus('loading')
-      const res = await fetch(`${API_BASE_URL}/api/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      })
-      if (!res.ok) throw new Error('Checkout failed')
-      const data = await res.json()
-      setOrderId(data.orderId)
-      clear()
-      setStatus('success')
+      if (API_BASE_URL) {
+        const res = await fetch(`${API_BASE_URL}/api/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items }),
+        })
+        if (!res.ok) throw new Error('Checkout failed')
+        const data = await res.json()
+        setOrderId(data.orderId)
+        clear()
+        setStatus('success')
+      } else {
+        // Simulate checkout in frontend-only mode
+        await new Promise((r) => setTimeout(r, 300))
+        const fakeOrderId = `ORDER-${Date.now()}`
+        setOrderId(fakeOrderId)
+        clear()
+        setStatus('success')
+      }
     } catch (e) {
       setStatus('error')
     }
