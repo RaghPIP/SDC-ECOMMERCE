@@ -5,7 +5,8 @@ import ProductSection from '../sections/ProductSection.jsx'
 import ReviewsGrid from '../sections/ReviewsGrid.jsx'
 import sampleProducts from '../data/products'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
+const rawApiBase = import.meta.env.VITE_API_URL ?? ''
+const API_BASE_URL = rawApiBase && rawApiBase.includes('<') ? '' : rawApiBase
 
 export default function Product() {
   const { id } = useParams()
@@ -31,7 +32,15 @@ export default function Product() {
         setStatus('success')
       } catch (e) {
         if (e.name === 'AbortError') return
-        setStatus('error')
+        // On any error, fall back to the bundled sample product so product pages work in frontend-only mode
+        console.warn('Failed to load product from API, falling back to local sample:', e)
+        const local = sampleProducts.find((p) => p.id === id)
+        if (local) {
+          setProduct(local)
+          setStatus('success')
+        } else {
+          setStatus('error')
+        }
       }
     }
     run()

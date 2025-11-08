@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import sampleProducts from '../data/products'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
+const rawApiBase = import.meta.env.VITE_API_URL ?? ''
+// Treat obvious placeholder values as unset so the app falls back to bundled data
+const API_BASE_URL = rawApiBase && rawApiBase.includes('<') ? '' : rawApiBase
 
 export default function Home() {
   const [status, setStatus] = useState('idle')
@@ -24,7 +26,11 @@ export default function Home() {
         setStatus('success')
       } catch (e) {
         if (e.name === 'AbortError') return
-        setStatus('error')
+        // On any error (network, CORS, invalid URL), fall back to bundled sample data
+        // so the UI remains usable in frontend-only/demo mode.
+        console.warn('Failed to fetch products from API, falling back to sample data:', e)
+        setProducts(sampleProducts)
+        setStatus('success')
       }
     }
     run()
