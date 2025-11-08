@@ -1,10 +1,26 @@
 const express = require('express')
 const cors = require('cors')
 
+// Small, dependency-free request logger
+function logger(req, _res, next) {
+  const now = new Date().toISOString()
+  console.log(`${now} - ${req.method} ${req.originalUrl}`)
+  next()
+}
+
 const app = express()
 const PORT = process.env.PORT || 5000
+// Allow overriding the host when needed (useful for containers or CI)
+const HOST = process.env.HOST || '0.0.0.0'
 
-app.use(cors())
+// Configure CORS to allow local frontend during development; can be locked down with CORS_ORIGIN
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+}
+
+app.use(logger)
+app.use(cors(corsOptions))
 app.use(express.json())
 
 const featuredProduct = {
@@ -285,7 +301,20 @@ app.post('/api/checkout', (req, res) => {
   res.json({ ok: true, orderId: `ORDER-${Date.now()}` })
 })
 
-app.listen(PORT, () => {
-  console.log(`Backend API listening on http://localhost:${PORT}`)
+const server = app.listen(PORT, HOST, () => {
+  const actualHost = HOST === '0.0.0.0' ? 'localhost' : HOST
+  console.log(`Backend API listening on http://${actualHost}:${PORT}`)
 })
+
+// Graceful error handling for unexpected exceptions/rejections
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err && err.stack ? err.stack : err)
+  // In production you might want to exit and let a process manager restart the app
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason)
+})
+
+module.exports = server
 
